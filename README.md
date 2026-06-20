@@ -2,8 +2,6 @@
 
 **VFishing** is an interactive, web-based fishing RPG built with Next.js and React. Cast your line, battle various fish species, upgrade your gear, and explore different fishing locations in this persistent browser game.
 
-![Fishing Game Screenshot](public/globe.svg) *<!-- Replace with actual screenshot if available -->*
-
 ## ✨ Features
 
 - **🎣 Interactive Fishing System**: 
