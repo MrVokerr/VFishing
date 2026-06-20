@@ -1,84 +1,110 @@
-# VFishing 🎣
+# VFishing
 
-**VFishing** is an interactive, web-based fishing RPG built with Next.js and React. Cast your line, battle various fish species, upgrade your gear, and explore different fishing locations in this persistent browser game.
+[![CI](https://github.com/MrVokerr/VFishing/actions/workflows/ci.yml/badge.svg)](https://github.com/MrVokerr/VFishing/actions/workflows/ci.yml)
 
-## ✨ Features
+ArcheAge-inspired browser fishing RPG built with Next.js and React.
 
-- **🎣 Interactive Fishing System**: 
-  - **Cast & Wait**: Cast your line and wait for the perfect bite.
-  - **Reaction Minigame**: Hook the fish and counter its movements (Left, Right, Jump, Dive) to tire it out.
-  - **Tension Mechanics**: Manage line tension to prevent the fish from snapping your line.
+**[Play online](https://vfishinggame.vercel.app/)** · **[GitHub](https://github.com/MrVokerr/VFishing)**
 
-- **📈 RPG Progression**:
-  - **Level Up**: Earn XP from catches to level up and unlock better gear.
-  - **Economy**: Sell your catch for coins to fund your fishing adventures.
-  - **Inventory Management**: Manage your catch within your boat's capacity.
+## How it plays
 
-- **🛍️ Shop & Upgrades**:
-  - **Rods**: Buy stronger rods to catch tougher fish faster.
-  - **Boats**: Upgrade your boat to increase inventory capacity and access new areas.
-  - **Bait**: Purchase specialized bait to increase your luck and catch rate.
+1. **Cast** at your current location and wait for a bite.
+2. **Hook** the fish when it strikes.
+3. **Fight** — counter the fish's moves (left, right, jump, dive) while managing line tension. Snap the line and you lose.
+4. **Catch** — land the fish to earn XP and fill your pack.
+5. **Shop** — sell your haul for coins, buy rods, boats, and bait, then travel to harder locations.
 
-- **🌍 Exploration**:
-  - Travel to different fishing spots, each with unique difficulty tiers and requirements.
-  - Unlock new locations as you upgrade your equipment.
+Progress is saved automatically in your browser (validated with Zod).
 
-- **💾 Persistence**: 
-  - Your progress (stats, inventory, upgrades) is automatically saved to your browser's local storage.
+## Features
 
-- **🤖 Dev Tools**:
-  - Includes an experimental Auto-Play Bot for testing and automation.
+- **Active fish fights** — counter LEFT / RIGHT / JUMP / DIVE (and RUN in rage) with line tension
+- **Legendary Final Burst QTE** — at 15% HP, a randomized 4-step button sequence (retry on miss)
+- **Progression** — XP, shop, rods, boats, bait, locations
+- **Pack inventory** — sell haul at the shop; boat sets capacity
+- **Persistence** — auto-save to localStorage (validated with Zod)
 
-## 🎮 Controls
+## Progression
+
+Five locations unlock as you upgrade gear. Each tier raises fish HP via a difficulty multiplier.
+
+| Location | Tier | Requirements |
+|----------|------|--------------|
+| Quiet Pond | 1 | — |
+| River Stream | 2 | Bamboo Pole |
+| Misty Lake | 3 | Rowboat |
+| Coastal Waters | 4 | Fiberglass Rod + Motorboat |
+| The Deep Sea | 5 | Carbon Fiber Rod + Trawler |
+
+Rods, boats, and bait unlock from the shop by player level. XP is a fixed amount per fish species (e.g. Sardine 10, Kraken 2000) — see `src/lib/data.ts` for full stats.
+
+### Boat fight stamina
+
+Stamina is Big Reel fuel only; it does not regenerate mid-fight.
+
+| Boat | Fight stamina |
+|------|---------------|
+| Raft | 0 |
+| Rowboat | 5 |
+| Motorboat | 10 |
+| Fishing Trawler | 15 |
+
+### Big Reel
+
+Available at **location tier 3+**. Costs **1 stamina** per use. Deals instant damage equal to **`rod.damage × 1.5`**. Auto Play only triggers Big Reel when stamina ≥ 1 and line tension is **≤ 75%**.
+
+## Controls
 
 ### Menu / Idle
-- **W / S**: Cast Line (if possible)
-- **A / D**: Switch Location
-- **Mouse**: Navigate UI, Open Shop
+- **W / S** — Cast line
+- **A / D** or **Arrow Left / Right** — Change location
 
-### Fighting the Fish
-- **A / Left Arrow**: Counter Fish pulling Left
-- **D / Right Arrow**: Counter Fish pulling Right
-- **W / Up Arrow**: Counter Fish Jumping (Reel)
-- **S / Down Arrow**: Counter Fish Diving (Give Slack) - *Tier 2+ Locations*
-- **Big Reel**: Click the "Big Reel" button for massive damage (high risk!) - *Tier 3+ Locations*
+### Hooked
+- **Click**, **Space**, **WASD**, or **arrow keys** — Hook the fish
 
-## 🚀 Getting Started
+### Fighting
+- **A / Left** — Counter left
+- **D / Right** — Counter right
+- **W / Up** — Reel (counter jump)
+- **S / Down** — Slack (counter dive/run, tier 2+)
+- **Space** — Big Reel (tier 3+, costs 1 stamina)
+- **1–4** — Fight abilities (see in-fight ability panel for details)
 
-First, install the dependencies:
+### Fight abilities
+
+| Key | Ability | Level | Effect |
+|-----|---------|-------|--------|
+| **1** | Pump Reel | 3 | 3s: +50% reel damage; extra tension only on mistimed reels |
+| **2** | Feather Drag | 7 | 2s: tension immunity from idle, mistakes, and jump strain |
+| **3** | Net Assist | 12 | Instant −15% fish max HP |
+| **4** | Harpoons | 18 | Legendary only: −20% max HP, +35 tension spike |
+
+## Dev Tools (gear icon)
+
+- **Auto Play** — perfect counters + Big Reel when stamina ≥ 1 and tension ≤ 75% (tier 3+)
+- **Force Legendary** — always hook Shark/Kraken
+- **Jump to Final Burst QTE** — test legendary QTE mid-fight
+
+## Scripts
 
 ```bash
-npm install
-# or
-yarn
-# or
-pnpm install
-# or
-bun install
+npm run dev        # development server
+npm run build      # production build
+npm run lint       # ESLint
+npm run typecheck  # TypeScript
+npm run test       # Vitest unit tests
 ```
 
-Then, run the development server:
+## Deployment
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Production is hosted on [Vercel](https://vfishinggame.vercel.app/). Pushing to `main` triggers a production redeploy when the Vercel Git integration is connected to this repository.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to start fishing!
+CI runs lint, typecheck, test, and build on every push and pull request (see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-- **Framework**: [Next.js 15+](https://nextjs.org/) (App Router)
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **State Management**: React Hooks (`useState`, `useEffect`, `useReducer`)
+Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · Vitest · Zod
 
-## 📝 License
+## License
 
-This project is open source and available under the [MIT License](LICENSE).
+[MIT](LICENSE)
