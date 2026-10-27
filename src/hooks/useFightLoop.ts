@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import type React from 'react';
 import {
   FightState,
@@ -151,66 +151,69 @@ export function useFightLoop({
     [clearFightTimers, onCaught, onLost]
   );
 
-  scheduleNextStateRef.current = () => {
-    if (!fightSimRef.current || !activeFish || pausedRef.current) return;
+  // Refresh the scheduler after each render (not during it) so timers always see current props.
+  useLayoutEffect(() => {
+    scheduleNextStateRef.current = () => {
+      if (!fightSimRef.current || !activeFish || pausedRef.current) return;
 
-    const behavior = getFishBehavior(activeFish);
-    const f = fightSimRef.current;
-    const rage = isInRage(f, behavior);
-    const available = getAvailableStates(behavior, currentLocation.tier, rage);
+      const behavior = getFishBehavior(activeFish);
+      const f = fightSimRef.current;
+      const rage = isInRage(f, behavior);
+      const available = getAvailableStates(behavior, currentLocation.tier, rage);
 
-    if (f.phase === 'finalBurst') {
-      stateTimerRef.current = setTimeout(() => scheduleNextStateRef.current(), 500);
-      return;
-    }
+      if (f.phase === 'finalBurst') {
+        stateTimerRef.current = setTimeout(() => scheduleNextStateRef.current(), 500);
+        return;
+      }
 
-    const { state: nextState, patternIndex, patternStep } = getNextPatternState(behavior, f, available);
-    let displayState = nextState;
+      const { state: nextState, patternIndex, patternStep } = getNextPatternState(behavior, f, available);
+      let displayState = nextState;
 
-    if (shouldUseFeint(behavior)) {
-      displayState = getFeintState(nextState, available);
-    }
+      if (shouldUseFeint(behavior)) {
+        displayState = getFeintState(nextState, available);
+      }
 
-    const telegraphed = displayState;
-    const telegraphUpdate = (prev: FightState | null) => {
-      if (!prev) return prev;
-      const next = { ...prev, telegraphState: telegraphed, pendingFishState: nextState };
-      fightSimRef.current = next;
-      pushUiState(next, true);
-      return next;
-    };
-    onFightUpdate(telegraphUpdate);
-
-    telegraphTimerRef.current = setTimeout(() => {
-      if (pausedRef.current) return;
-      const commitUpdate = (prev: FightState | null) => {
+      const telegraphed = displayState;
+      const telegraphUpdate = (prev: FightState | null) => {
         if (!prev) return prev;
-        const next = {
-          ...prev,
-          fishState: nextState,
-          telegraphState: null,
-          pendingFishState: null,
-          patternIndex,
-          patternStep,
-          fishStateChangedAt: Date.now(),
-        };
+        const next = { ...prev, telegraphState: telegraphed, pendingFishState: nextState };
         fightSimRef.current = next;
         pushUiState(next, true);
         return next;
       };
-      onFightUpdate(commitUpdate);
+      onFightUpdate(telegraphUpdate);
 
-      const duration = getStateDurationMs(
-        behavior,
-        currentLocation.difficultyMultiplier,
-        activeFish.difficulty,
-        isInRage(fightSimRef.current!, behavior),
-        fightSimRef.current!.phase
-      );
+      telegraphTimerRef.current = setTimeout(() => {
+        if (pausedRef.current) return;
+        const commitUpdate = (prev: FightState | null) => {
+          if (!prev) return prev;
+          const next = {
+            ...prev,
+            fishState: nextState,
+            telegraphState: null,
+            pendingFishState: null,
+            patternIndex,
+            patternStep,
+            fishStateChangedAt: Date.now(),
+          };
+          fightSimRef.current = next;
+          pushUiState(next, true);
+          return next;
+        };
+        onFightUpdate(commitUpdate);
 
-      stateTimerRef.current = setTimeout(() => scheduleNextStateRef.current(), duration);
-    }, TELEGRAPH_MS);
-  };
+        const duration = getStateDurationMs(
+          behavior,
+          currentLocation.difficultyMultiplier,
+          activeFish.difficulty,
+          isInRage(fightSimRef.current!, behavior),
+          fightSimRef.current!.phase
+        );
+
+        stateTimerRef.current = setTimeout(() => scheduleNextStateRef.current(), duration);
+      }, TELEGRAPH_MS);
+    };
+  });
 
   const scheduleNextState = useCallback(() => {
     scheduleNextStateRef.current();

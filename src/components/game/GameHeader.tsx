@@ -60,6 +60,7 @@ export default function GameHeader({
       </div>
 
       <div className="flex items-center gap-4">
+        {process.env.NODE_ENV !== 'production' && (
         <div className="relative">
           <button
             onClick={onToggleDevMenu}
@@ -79,6 +80,7 @@ export default function GameHeader({
             />
           )}
         </div>
+        )}
 
         <button
           onClick={onToggleShop}
